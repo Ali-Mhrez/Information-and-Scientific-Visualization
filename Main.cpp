@@ -12,8 +12,8 @@ void get_z_range(float&, float&);
 void set_color_by_height(float, float, float);
 void viewing(int, int);
 
-// Sin, Wave, Para, Ripple, Gaussian (default)
-std::string function = "";
+// Sin, Para, Wave, Ripple, Gaussian (default)
+std::string function = "Para";
 
 class Quad
 {
@@ -68,7 +68,7 @@ void draw()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	if (function == "Sin")
 	{
-		draw_quad(-1, 1, -1, 1, 300, 300);
+		draw_quad(-1.0f, 1.0f, -1.0f, 1.0f, 300, 300);
 	}
 	else if (function == "Wave")
 	{
@@ -77,7 +77,7 @@ void draw()
 	else if (function == "Para")
 	{
 
-		draw_quad(-2, 2, -2, 2, 100, 100);
+		draw_quad(-2.0f, 2.0f, -2.0f, 2.0f, 100, 100);
 	}
 	else if (function == "Ripple")
 	{
@@ -127,11 +127,11 @@ void draw_quad(float x_min, float x_max, float y_min, float y_max, int n_x, int 
 	}
 }
 
-float f(float x, float y) 
+float f(float x, float y)
 {
 	if (function == "Sin")
 	{
-		return std::sin(1 / (x * x + y * y));
+		return std::sin(1.0f / (x * x + y * y));
 	}
 	else if (function == "Wave")
 	{
@@ -158,8 +158,8 @@ float* n(float x, float y)
 
 	if (function == "Sin")
 	{
-		float nx = 2.0f * x * std::cos(1 / (x * x + y * y)) / std::pow(x * x + y * y, 2);
-		float ny = 2.0f * y * std::cos(1 / (x * x + y * y)) / std::pow(x * x + y * y, 2);
+		float nx = 2.0f * x * std::cos(1.0f / (x * x + y * y)) / std::pow(x * x + y * y, 2.0f);
+		float ny = 2.0f * y * std::cos(1.0f / (x * x + y * y)) / std::pow(x * x + y * y, 2.0f);
 		float nz = 1.0f;
 	}
 	else if (function == "Wave")
@@ -207,7 +207,7 @@ float* n(float x, float y)
 void get_z_range(float& z_min, float& z_max) {
 	if (function == "Sin")
 	{
-		z_min = -2.0f; z_max = 2.0f;
+		z_min = -1.5f; z_max = 1.5f;
 	}
 	else if (function == "Wave")
 	{
@@ -248,7 +248,7 @@ void viewing(int W, int H)
 
 	if (function == "Sin")
 	{
-		gluLookAt(5, -5, 5, 0, 0, 0, 0, 0, 1);
+		gluLookAt(3.0f, 5.0f, 4.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 	}
 	else if (function == "Wave")
 	{
@@ -256,7 +256,7 @@ void viewing(int W, int H)
 	}
 	else if (function == "Para")
 	{
-		gluLookAt(5, -20, 25, 0, 0, 5, 0, 0, 1);
+		gluLookAt(5.0f, 12.0f, 10.0f, 0.0f, 0.0f, 4.0f, 0.0f, 0.0f, 1.0f);
 	}
 	else if (function == "Ripple")
 	{
@@ -273,11 +273,11 @@ void viewing(int W, int H)
 
 	if (function == "Sin")
 	{
-		gluPerspective(30, aspect, 2, 200);
+		gluPerspective(40.0f, aspect, 0.1f, 100.0f);
 	}
 	else if (function == "Para")
 	{
-		gluPerspective(30, aspect, 2, 200);
+		gluPerspective(40.0f, aspect, 0.1f, 100.0f);
 	}
 	else
 	{

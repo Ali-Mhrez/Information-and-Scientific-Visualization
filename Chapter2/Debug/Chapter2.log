@@ -1,0 +1,6 @@
+﻿  Main.cpp
+F:\Chapter2\Main.cpp(75,59): warning C4305: 'argument': truncation from 'double' to 'float'
+F:\Chapter2\Main.cpp(75,46): warning C4305: 'argument': truncation from 'double' to 'float'
+F:\Chapter2\Main.cpp(75,32): warning C4305: 'argument': truncation from 'double' to 'float'
+F:\Chapter2\Main.cpp(75,19): warning C4305: 'argument': truncation from 'double' to 'float'
+  Chapter2.vcxproj -> F:\Chapter2\Debug\Chapter2.exe
