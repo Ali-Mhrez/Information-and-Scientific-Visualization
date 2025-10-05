@@ -11,9 +11,18 @@ float* n(float, float);
 void get_z_range(float&, float&);
 void set_color_by_height(float, float, float);
 void viewing(int, int);
+void keyboard(unsigned char, int, int);
+void draw_grid(float, float, float, float, int, int, float _z = -0.1f);
+void update_light_position();
 
-// Sin, Para, Ripple, Wave, Gaussian (default)
-std::string function = "Sin";
+// Sin, Para, Ripple, Wave, Gaussian, Fenc (default)
+std::string function = "";
+int shading_mode = 1; // flat (default)
+
+float light_pos_x = 5.0f;
+float light_pos_y = -5.0f;
+float light_pos_z = 5.0f;
+float light_move_step = 1.5f;
 
 class Quad
 {
@@ -37,6 +46,40 @@ public:Quad()
 	  }
 };
 
+void init() {
+	// Enable depth testing for proper 3D rendering (hiding objects behind others)
+	glEnable(GL_DEPTH_TEST);
+	glShadeModel(GL_SMOOTH);
+
+	// Set a background color (dark blue)
+	glClearColor(0.1f, 0.1f, 0.3f, 1.0f);
+
+	// --- LIGHTING SETUP ---
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+
+	// Define the light properties
+	float light_pos[] = { light_pos_x, light_pos_y, light_pos_z, 1.0f }; // Positional light
+	float white_light[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	float ambient_light[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+
+	glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, white_light);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, white_light);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient_light);
+
+	// Enable color tracking, so glColor3f affects the material properties
+	glEnable(GL_COLOR_MATERIAL);
+	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+
+	// --- GLEW INIT ---
+	// Initialize GLEW *after* a GLUT window is created
+	GLenum err = glewInit();
+	if (GLEW_OK != err) {
+		exit(1);
+	}
+}
+
 int main(int argc, char** argv)
 {
 	// Initialize GLUT library
@@ -45,18 +88,20 @@ int main(int argc, char** argv)
 
 	// Specify the initial window size
 	glutInitWindowSize(800, 600);
-
+	
 	// Create a window with given title
 	glutCreateWindow("Visualization");
 
-	// Set a background color (dark blue)
-	glClearColor(0.1f, 0.1f, 0.3f, 1.0f);
+	init();
 
 	// Specify function to draw scene
 	glutDisplayFunc(draw);
 
 	// Specify function to set up viewing
 	glutReshapeFunc(viewing);
+
+	// Bind the new keyboard function
+	glutKeyboardFunc(keyboard);
 
 	// Start the event loop
 	glutMainLoop();
@@ -68,27 +113,37 @@ void draw()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	if (function == "Sin")
 	{
-		draw_quad(-1.0f, 1.0f, -1.0f, 1.0f, 300, 300);
+		draw_quad(-1.0f, 1.0f, -1.0f, 1.0f, 100, 100);
+		draw_grid(-1.0f, 1.0f, -1.0f, 1.0f, 100, 100, -1.0f);
 	}
 	else if (function == "Wave")
 	{
-		draw_quad(-2.0f * M_PI, 2.0f * M_PI, -2.0f * M_PI, 2.0f * M_PI, 100, 100);
+		draw_quad(-2.0f * M_PI, 2.0f * M_PI, -2.0f * M_PI, 2.0f * M_PI, 50, 50);
+		draw_grid(-2.0f * M_PI, 2.0f * M_PI, -2.0f * M_PI, 2.0f * M_PI, 50, 50, -2.0f);
 	}
 	else if (function == "Para")
 	{
-
-		draw_quad(-2.0f, 2.0f, -2.0f, 2.0f, 100, 100);
+		draw_quad(-2.0f, 2.0f, -2.0f, 2.0f, 30, 30);
+		draw_grid(-2.0f, 2.0f, -2.0f, 2.0f, 30, 30);
 	}
 	else if (function == "Ripple")
 	{
 
 		draw_quad(-3.0f, 3.0f, -3.0f, 3.0f, 100, 100);
 	}
+	else if (function == "Fenc")
+	{
+
+		draw_quad(-1.0f, 1.0f, -1.0f, 1.0f, 30, 30);
+		draw_grid(-1.0f, 1.0f, -1.0f, 1.0f, 30, 30, -0.5f);
+	}
 	else
 	{
 		draw_quad(-1.0f, 1.0f, -1.0f, 1.0f, 30, 30);
+		draw_grid(-1.0f, 1.0f, -1.0f, 1.0f, 30, 30);
 	}
 	glutSwapBuffers();
+	glutPostRedisplay();
 }
 
 void draw_quad(float x_min, float x_max, float y_min, float y_max, int n_x, int n_y) {
@@ -145,6 +200,10 @@ float f(float x, float y)
 	{
 		return std::sin(10.0f * (x * x + y * y)) / 10.0f;
 	}
+	else if (function == "Fenc")
+	{
+		return 0.75f / std::exp(std::pow(x * 5, 2) * std::pow(y * 5, 2));
+	}
 	else
 	{
 		return std::exp(-(x * x + y * y));
@@ -178,6 +237,12 @@ float* n(float x, float y)
 	{
 		nx = -2.0f * x * std::cos(10.0f * (x * x + y * y));
 		ny = -2.0f * y * std::cos(10.0f * (x * x + y * y));
+		nz = 1.0f;
+	}
+	else if (function == "Fenc")
+	{
+		nx = 937.5f * x * y * y * std::exp(-625.0f * x * x * y * y);
+		ny = 937.5f * x * x * y * std::exp(-625.0f * x * x * y * y);
 		nz = 1.0f;
 	}
 	else
@@ -221,6 +286,10 @@ void get_z_range(float& z_min, float& z_max) {
 	{
 		z_min = -0.1f; z_max = 0.1f;
 	}
+	else if (function == "Fenc")
+	{
+		z_min = 0.0f; z_max = 0.7f;
+	}
 	else
 	{
 		z_min = 0.0f; z_max = 1.3f;
@@ -248,11 +317,13 @@ void viewing(int W, int H)
 
 	if (function == "Sin")
 	{
-		gluLookAt(3.0f, 5.0f, 4.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+		//gluLookAt(3.0f, 4.0f, 4.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+		//gluLookAt(3.0f, 4.0f, 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+		gluLookAt(0.0f, 4.0f, 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 	}
 	else if (function == "Wave")
 	{
-		gluLookAt(15, 20, 5, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+		gluLookAt(25, 15, 5, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 	}
 	else if (function == "Para")
 	{
@@ -261,6 +332,10 @@ void viewing(int W, int H)
 	else if (function == "Ripple")
 	{
 		gluLookAt(5.0f, 7.0f, 5.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+	}
+	else if (function == "Fenc")
+	{
+		gluLookAt(3.0f, 3.0f, 4.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 	}
 	else
 	{
@@ -272,4 +347,87 @@ void viewing(int W, int H)
 	float aspect = float(W) / H;
 	gluPerspective(40.0f, aspect, 0.1f, 100.0f);
 	glViewport(0, 0, W, H);
+}
+
+void keyboard(unsigned char key, int x, int y) {
+	switch (key) {
+	case 's': // Toggle Shading Mode
+		shading_mode = 1 - shading_mode; // Toggles between 0 and 1
+		if (shading_mode == 1) {
+			// Smooth Shading: Interpolates color/normal across the polygon.
+			glShadeModel(GL_SMOOTH);
+		}
+		else {
+			// Flat Shading: Uses the color/normal of the last vertex for the entire polygon.
+			glShadeModel(GL_FLAT);
+		}
+		glutPostRedisplay(); // Request redraw to apply change
+		break;
+	case 'X': light_pos_x += light_move_step; update_light_position(); break;
+	case 'x': light_pos_x -= light_move_step; update_light_position(); break;
+	case 'Y': light_pos_y += light_move_step; update_light_position(); break;
+	case 'y': light_pos_y -= light_move_step; update_light_position(); break;
+	case 'Z': light_pos_z += light_move_step; update_light_position(); break;
+	case 'z': light_pos_z -= light_move_step; update_light_position(); break;
+	case 27: // ESC key to exit
+		exit(0);
+		break;
+	}
+}
+
+void draw_grid(float x_min, float x_max, float y_min, float y_max, int n_x, int n_y, float _z) {
+	float dx = (x_max - x_min) / (n_x - 1);
+	float dy = (y_max - y_min) / (n_y - 1);
+	const float grid_z = _z; // Z-coordinate for the grid plane
+
+	// Disable lighting and depth masking so the grid is drawn clearly
+	glDisable(GL_LIGHTING);
+	glDepthMask(GL_FALSE); // Prevents the grid from writing to the depth buffer
+
+	// Set grid color (e.g., black or red border/black interior as shown in the image)
+	glColor3f(0.0f, 0.0f, 0.0f); // Black lines for the interior grid
+
+	// Draw all vertical lines
+	glBegin(GL_LINES);
+	for (int i = 0; i < n_x; ++i) {
+		float x = x_min + i * dx;
+		// Line starts at (x, y_min, z)
+		glVertex3f(x, y_min, grid_z);
+		// Line ends at (x, y_max, z)
+		glVertex3f(x, y_max, grid_z);
+	}
+	glEnd();
+
+	// Draw all horizontal lines
+	glBegin(GL_LINES);
+	for (int j = 0; j < n_y; ++j) {
+		float y = y_min + j * dy;
+		// Line starts at (x_min, y, z)
+		glVertex3f(x_min, y, grid_z);
+		// Line ends at (x_max, y, z)
+		glVertex3f(x_max, y, grid_z);
+	}
+	glEnd();
+
+	// Draw the red border using thicker lines (optional, but looks better)
+	glColor3f(1.0f, 0.0f, 0.0f); // Red border
+	glLineWidth(2.0f);
+	glBegin(GL_LINE_LOOP); // Draws a closed loop for the border
+	glVertex3f(x_min, y_min, grid_z);
+	glVertex3f(x_max, y_min, grid_z);
+	glVertex3f(x_max, y_max, grid_z);
+	glVertex3f(x_min, y_max, grid_z);
+	glEnd();
+	glLineWidth(1.0f); // Reset line width
+
+	// Re-enable states for the surface plot
+	glDepthMask(GL_TRUE); // Re-enable depth writing
+	glEnable(GL_LIGHTING); // Re-enable lighting
+}
+
+void update_light_position() {
+	// The fourth component (1.0f) makes this a positional light source
+	float light_pos[] = { light_pos_x, light_pos_y, light_pos_z, 1.0f };
+	glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
+	glutPostRedisplay(); // Request redraw to show the new shading
 }
