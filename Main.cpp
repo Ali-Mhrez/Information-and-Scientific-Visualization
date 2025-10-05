@@ -12,8 +12,8 @@ void get_z_range(float&, float&);
 void set_color_by_height(float, float, float);
 void viewing(int, int);
 
-// Sin, Para, Wave, Ripple, Gaussian (default)
-std::string function = "Para";
+// Sin, Para, Ripple, Wave, Gaussian (default)
+std::string function = "Sin";
 
 class Quad
 {
@@ -82,7 +82,7 @@ void draw()
 	else if (function == "Ripple")
 	{
 
-		draw_quad(-3, 3, -3, 3, 100, 100);
+		draw_quad(-3.0f, 3.0f, -3.0f, 3.0f, 100, 100);
 	}
 	else
 	{
@@ -164,8 +164,8 @@ float* n(float x, float y)
 	}
 	else if (function == "Wave")
 	{
-		float nx = std::cos(x);
-		float ny = -std::sin(y);
+		float nx = -std::cos(x);
+		float ny = std::sin(y);
 		float nz = 1.0f;
 	}
 	else if (function == "Para")
@@ -176,8 +176,8 @@ float* n(float x, float y)
 	}
 	else if (function == "Ripple")
 	{
-		nx = 2.0f * x * std::cos(10 * (x * x + y * y));
-		ny = 2.0f * y * std::cos(10 * (x * x + y * y));
+		nx = -2.0f * x * std::cos(10.0f * (x * x + y * y));
+		ny = -2.0f * y * std::cos(10.0f * (x * x + y * y));
 		nz = 1.0f;
 	}
 	else
@@ -211,7 +211,7 @@ void get_z_range(float& z_min, float& z_max) {
 	}
 	else if (function == "Wave")
 	{
-		z_min = -6.0f; z_max = 8.0f;
+		z_min = -4.0f; z_max = 4.0f;
 	}
 	else if (function == "Para")
 	{
@@ -219,7 +219,7 @@ void get_z_range(float& z_min, float& z_max) {
 	}
 	else if (function == "Ripple")
 	{
-		z_min = -0.2f; z_max = 0.2f;
+		z_min = -0.1f; z_max = 0.1f;
 	}
 	else
 	{
@@ -252,7 +252,7 @@ void viewing(int W, int H)
 	}
 	else if (function == "Wave")
 	{
-		gluLookAt(0, -30, 35, 0, 0, 0, 0, 0, 1);
+		gluLookAt(15, 20, 5, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 	}
 	else if (function == "Para")
 	{
@@ -260,7 +260,7 @@ void viewing(int W, int H)
 	}
 	else if (function == "Ripple")
 	{
-		gluLookAt(5, -15, 10, 0, 0, 0, 0, 0, 1);
+		gluLookAt(5.0f, 7.0f, 5.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 	}
 	else
 	{
@@ -270,19 +270,6 @@ void viewing(int W, int H)
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	float aspect = float(W) / H;
-
-	if (function == "Sin")
-	{
-		gluPerspective(40.0f, aspect, 0.1f, 100.0f);
-	}
-	else if (function == "Para")
-	{
-		gluPerspective(40.0f, aspect, 0.1f, 100.0f);
-	}
-	else
-	{
-		gluPerspective(40.0f, aspect, 0.1f, 100.0f);
-	}
-
+	gluPerspective(40.0f, aspect, 0.1f, 100.0f);
 	glViewport(0, 0, W, H);
 }
