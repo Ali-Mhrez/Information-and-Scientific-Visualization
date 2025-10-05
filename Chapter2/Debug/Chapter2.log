@@ -1,11 +1,11 @@
 ﻿  Main.cpp
-F:\Chapter2\Main.cpp(121,59): warning C4305: 'argument': truncation from 'double' to 'float'
-F:\Chapter2\Main.cpp(121,46): warning C4305: 'argument': truncation from 'double' to 'float'
-F:\Chapter2\Main.cpp(121,32): warning C4305: 'argument': truncation from 'double' to 'float'
-F:\Chapter2\Main.cpp(121,19): warning C4305: 'argument': truncation from 'double' to 'float'
-F:\Chapter2\Main.cpp(122,59): warning C4305: 'argument': truncation from 'double' to 'float'
-F:\Chapter2\Main.cpp(122,46): warning C4305: 'argument': truncation from 'double' to 'float'
-F:\Chapter2\Main.cpp(122,32): warning C4305: 'argument': truncation from 'double' to 'float'
-F:\Chapter2\Main.cpp(122,19): warning C4305: 'argument': truncation from 'double' to 'float'
-F:\Chapter2\Main.cpp(205,16): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
+F:\Chapter2\Main.cpp(118,17): warning C4305: '=': truncation from 'double' to 'float'
+F:\Chapter2\Main.cpp(118,38): warning C4305: '=': truncation from 'double' to 'float'
+F:\Chapter2\Main.cpp(118,60): warning C4305: '=': truncation from 'double' to 'float'
+F:\Chapter2\Main.cpp(118,81): warning C4305: '=': truncation from 'double' to 'float'
+F:\Chapter2\Main.cpp(128,47): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+F:\Chapter2\Main.cpp(128,40): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+F:\Chapter2\Main.cpp(129,47): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+F:\Chapter2\Main.cpp(129,40): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+F:\Chapter2\Main.cpp(192,16): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
   Chapter2.vcxproj -> F:\Chapter2\Debug\Chapter2.exe

@@ -3,19 +3,19 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <string>
+#include <iostream>
 
 void draw();
 void draw_quad(float, float, float, float, int, int);
 float f(float, float);
 float* n(float, float);
-void get_z_range(float&, float&);
 void set_color_by_height(float, float, float);
 void viewing(int, int);
 void keyboard(unsigned char, int, int);
-void draw_grid(float, float, float, float, int, int, float _z = -0.1f);
+void draw_grid(float, float, float, float, int, int, float);
 void update_light_position();
 
-// Sin, Para, Ripple, Wave, Gaussian, Fenc (default)
+// Sin, Parabola, Ripple, Wave, Gaussian, Fenc (default)
 std::string function = "";
 int shading_mode = 1; // flat (default)
 
@@ -24,29 +24,44 @@ float light_pos_y = -5.0f;
 float light_pos_z = 5.0f;
 float light_move_step = 1.5f;
 
-class Quad
-{
+class Quad {
 public:Quad()
 {
 	glBegin(GL_QUADS);
 }
-	  void addPoint(float x, float y, float z)
-	  {
+	  void addPoint(float x, float y, float z) {
 		  glVertex3f(x, y, z);
 	  }
 
-	  void addNormal(float* n)
-	  {
+	  void addNormal(float* n) {
 		  glNormal3f(n[0], n[1], n[2]);
 	  }
 
-	  void draw()
-	  {
+	  void draw() {
 		  glEnd();
 	  }
 };
 
-void init() {
+int main(int argc, char** argv) {
+	std::cout << "Please choose a function: (Gaussian, Parabola, Ripple, Fenc, Sin, Wave): ";
+	std::cin >> function;
+	while (function != "Gaussian" and function != "Parabola" and
+		   function != "Ripple" and function != "Fenc" and
+		   function != "Sin" and function != "Wave") {
+		std::cout << "Incorrect choice! Please try again: ";
+		std::cin >> function;
+	}
+
+	// Initialize GLUT library
+	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
+
+	// Specify the initial window size
+	glutInitWindowSize(800, 600);
+	
+	// Create a window with given title
+	glutCreateWindow("Visualization");
+
 	// Enable depth testing for proper 3D rendering (hiding objects behind others)
 	glEnable(GL_DEPTH_TEST);
 	glShadeModel(GL_SMOOTH);
@@ -78,21 +93,6 @@ void init() {
 	if (GLEW_OK != err) {
 		exit(1);
 	}
-}
-
-int main(int argc, char** argv)
-{
-	// Initialize GLUT library
-	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
-
-	// Specify the initial window size
-	glutInitWindowSize(800, 600);
-	
-	// Create a window with given title
-	glutCreateWindow("Visualization");
-
-	init();
 
 	// Specify function to draw scene
 	glutDisplayFunc(draw);
@@ -108,40 +108,25 @@ int main(int argc, char** argv)
 	return 0;
 }
 
-void draw()
-{
+void draw() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	if (function == "Sin")
-	{
-		draw_quad(-1.0f, 1.0f, -1.0f, 1.0f, 100, 100);
-		draw_grid(-1.0f, 1.0f, -1.0f, 1.0f, 100, 100, -1.0f);
-	}
-	else if (function == "Wave")
-	{
-		draw_quad(-2.0f * M_PI, 2.0f * M_PI, -2.0f * M_PI, 2.0f * M_PI, 50, 50);
-		draw_grid(-2.0f * M_PI, 2.0f * M_PI, -2.0f * M_PI, 2.0f * M_PI, 50, 50, -2.0f);
-	}
-	else if (function == "Para")
-	{
-		draw_quad(-2.0f, 2.0f, -2.0f, 2.0f, 30, 30);
-		draw_grid(-2.0f, 2.0f, -2.0f, 2.0f, 30, 30);
-	}
-	else if (function == "Ripple")
-	{
 
-		draw_quad(-3.0f, 3.0f, -3.0f, 3.0f, 100, 100);
+	float x_min = 0, x_max = 0, y_min = 0, y_max = 0, x_res = 0, y_res = 0, z_grid = 0;
+	if (function == "Sin") {
+		x_min = -1.0f; x_max = 1.0f; y_min = -1.0f; y_max = 1.0f; x_res = 100; y_res = 100; z_grid = -1.0f;
+	} else if (function == "Wave") {
+		x_min = -2.0f * M_PI; x_max = 2.0f * M_PI; y_min = -2.0f * M_PI; y_max = 2.0f * M_PI; x_res = 50; y_res = 50; z_grid = -2.0f;
+	} else if (function == "Parabola") {
+		x_min = -2.0f; x_max = 2.0f; y_min = -2.0f; y_max = 2.0f; x_res = 30; y_res = 30; z_grid = -0.1f;
+	} else if (function == "Ripple") {
+		x_min = -1.0f; x_max = 1.0f; y_min = -1.0f; y_max = 1.0f; x_res = 100; y_res = 100; z_grid = -0.5f;
+	} else if (function == "Fenc") {
+		x_min = -1.0f; x_max = 1.0f; y_min = -1.0f; y_max = 1.0f; x_res = 30; y_res = 30; z_grid = -0.5f;
+	} else { // Gaussian
+		x_min = -1.0f; x_max = 1.0f; y_min = -1.0f; y_max = 1.0f; x_res = 30; y_res = 30; z_grid = -0.1f;
 	}
-	else if (function == "Fenc")
-	{
-
-		draw_quad(-1.0f, 1.0f, -1.0f, 1.0f, 30, 30);
-		draw_grid(-1.0f, 1.0f, -1.0f, 1.0f, 30, 30, -0.5f);
-	}
-	else
-	{
-		draw_quad(-1.0f, 1.0f, -1.0f, 1.0f, 30, 30);
-		draw_grid(-1.0f, 1.0f, -1.0f, 1.0f, 30, 30);
-	}
+	draw_quad(x_min, x_max, y_min, y_max, x_res, y_res);
+	draw_grid(x_min, x_max, y_min, y_max, x_res, y_res, z_grid);
 	glutSwapBuffers();
 	glutPostRedisplay();
 }
@@ -151,7 +136,19 @@ void draw_quad(float x_min, float x_max, float y_min, float y_max, int n_x, int 
 	float dy = (y_max - y_min) / (n_y - 1);
 
 	float z, z_min, z_max;
-	get_z_range(z_min, z_max);
+	if (function == "Sin") {
+		z_min = -1.5f; z_max = 1.5f;
+	} else if (function == "Wave") {
+		z_min = -4.0f; z_max = 4.0f;
+	} else if (function == "Parabola") {
+		z_min = 0.0f; z_max = 8.0f;
+	} else if (function == "Ripple") {
+		z_min = -0.1f; z_max = 0.1f;
+	} else if (function == "Fenc") {
+		z_min = 0.0f; z_max = 0.7f;
+	} else {
+		z_min = 0.0f; z_max = 1.3f;
+	}
 
 	for (float x = x_min; x <= x_max - dx; x += dx) {
 		for (float y = y_min; y <= y_max - dy; y += dy) {
@@ -182,122 +179,60 @@ void draw_quad(float x_min, float x_max, float y_min, float y_max, int n_x, int 
 	}
 }
 
-float f(float x, float y)
-{
-	if (function == "Sin")
-	{
+float f(float x, float y) {
+	if (function == "Sin") {
 		return std::sin(1.0f / (x * x + y * y));
-	}
-	else if (function == "Wave")
-	{
+	} else if (function == "Wave") {
 		return std::sin(x) + std::cos(y);
-	}
-	else if (function == "Para")
-	{
+	} else if (function == "Parabola") {
 		return x * x + y * y;
-	}
-	else if (function == "Ripple")
-	{
+	} else if (function == "Ripple") {
 		return std::sin(10.0f * (x * x + y * y)) / 10.0f;
-	}
-	else if (function == "Fenc")
-	{
+	} else if (function == "Fenc") {
 		return 0.75f / std::exp(std::pow(x * 5, 2) * std::pow(y * 5, 2));
-	}
-	else
-	{
+	} else {
 		return std::exp(-(x * x + y * y));
 	}
 }
 
-float* n(float x, float y)
-{
+float* n(float x, float y) {
 	float* normal = new float[3];
-	float nx = 0, ny = 0, nz = 0;
+	float nx = 0, ny = 0, nz = 1.0f;
 
-	if (function == "Sin")
-	{
-		float nx = 2.0f * x * std::cos(1.0f / (x * x + y * y)) / std::pow(x * x + y * y, 2.0f);
-		float ny = 2.0f * y * std::cos(1.0f / (x * x + y * y)) / std::pow(x * x + y * y, 2.0f);
-		float nz = 1.0f;
-	}
-	else if (function == "Wave")
-	{
-		float nx = -std::cos(x);
-		float ny = std::sin(y);
-		float nz = 1.0f;
-	}
-	else if (function == "Para")
-	{
+	if (function == "Sin") {
+		nx = 2.0f * x * std::cos(1.0f / (x * x + y * y)) / std::pow(x * x + y * y, 2.0f);
+		ny = 2.0f * y * std::cos(1.0f / (x * x + y * y)) / std::pow(x * x + y * y, 2.0f);
+	} else if (function == "Wave") {
+		nx = -std::cos(x);
+		ny = std::sin(y);
+	} else if (function == "Parabola") {
 		nx = -2.0f * x;
 		ny = -2.0f * y;
-		nz = 1.0f;
-	}
-	else if (function == "Ripple")
-	{
+	} else if (function == "Ripple") {
 		nx = -2.0f * x * std::cos(10.0f * (x * x + y * y));
 		ny = -2.0f * y * std::cos(10.0f * (x * x + y * y));
-		nz = 1.0f;
-	}
-	else if (function == "Fenc")
-	{
+	} else if (function == "Fenc") {
 		nx = 937.5f * x * y * y * std::exp(-625.0f * x * x * y * y);
 		ny = 937.5f * x * x * y * std::exp(-625.0f * x * x * y * y);
-		nz = 1.0f;
-	}
-	else
-	{
+	} else {
 		nx = 2.0f * x * f(x, y);;
 		ny = 2.0f * y * f(x, y);;
-		nz = 1.0f;
 	}
 
 	float length = std::sqrt(nx * nx + ny * ny + nz * nz);
-	if (length > 0)
-	{
+	if (length > 0) {
 		normal[0] = nx / length;
 		normal[1] = ny / length;
 		normal[2] = nz / length;
-	}
-	else
-	{
+	} else {
 		normal[0] = 0.0f;
 		normal[1] = 0.0f;
 		normal[2] = 0.0f;
 	}
-
 	return normal;
 }
 
-void get_z_range(float& z_min, float& z_max) {
-	if (function == "Sin")
-	{
-		z_min = -1.5f; z_max = 1.5f;
-	}
-	else if (function == "Wave")
-	{
-		z_min = -4.0f; z_max = 4.0f;
-	}
-	else if (function == "Para")
-	{
-		z_min = 0.0f; z_max = 8.0f;
-	}
-	else if (function == "Ripple")
-	{
-		z_min = -0.1f; z_max = 0.1f;
-	}
-	else if (function == "Fenc")
-	{
-		z_min = 0.0f; z_max = 0.7f;
-	}
-	else
-	{
-		z_min = 0.0f; z_max = 1.3f;
-	}
-}
-
 void set_color_by_height(float z, float z_min, float z_max) {
-
 	float t = (z - z_min) / (z_max - z_min);
 
 	if (t < 0.0f) t = 0.0f;
@@ -310,35 +245,21 @@ void set_color_by_height(float z, float z_min, float z_max) {
 	glColor3f(R, G, B);
 }
 
-void viewing(int W, int H)
-{
+void viewing(int W, int H) {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	if (function == "Sin")
-	{
-		//gluLookAt(3.0f, 4.0f, 4.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-		//gluLookAt(3.0f, 4.0f, 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+	if (function == "Sin") {
 		gluLookAt(0.0f, 4.0f, 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-	}
-	else if (function == "Wave")
-	{
-		gluLookAt(25, 15, 5, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-	}
-	else if (function == "Para")
-	{
+	} else if (function == "Wave") {
+		gluLookAt(25, 15, 15, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+	} else if (function == "Parabola") {
 		gluLookAt(5.0f, 12.0f, 10.0f, 0.0f, 0.0f, 4.0f, 0.0f, 0.0f, 1.0f);
-	}
-	else if (function == "Ripple")
-	{
-		gluLookAt(5.0f, 7.0f, 5.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-	}
-	else if (function == "Fenc")
-	{
+	} else if (function == "Ripple") {
+		gluLookAt(4.0f, 1.0f, 3.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+	} else if (function == "Fenc") {
 		gluLookAt(3.0f, 3.0f, 4.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-	}
-	else
-	{
+	} else {
 		gluLookAt(3.0f, 2.0f, 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 	}
 
