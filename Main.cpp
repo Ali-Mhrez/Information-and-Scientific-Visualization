@@ -27,18 +27,18 @@ float light_move_step = 1.5f;
 class Quad {
 public:Quad()
 {
-	glBegin(GL_QUADS);
+	glBegin(GL_QUADS);         // start the drawing process
 }
 	  void addPoint(float x, float y, float z) {
-		  glVertex3f(x, y, z);
+		  glVertex3f(x, y, z);        // define one corner of the quadrilateral
 	  }
 
 	  void addNormal(float* n) {
-		  glNormal3f(n[0], n[1], n[2]);
+		  glNormal3f(n[0], n[1], n[2]);     // set the normal for ligtning and shading
 	  }
 
 	  void draw() {
-		  glEnd();
+		  glEnd();    // end the definition of the quadrilateral
 	  }
 };
 
@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
 	glutInitWindowSize(800, 600);
 	
 	// Create a window with given title
-	glutCreateWindow("Visualization");
+	glutCreateWindow(function.c_str());
 
 	// Enable depth testing for proper 3D rendering (hiding objects behind others)
 	glEnable(GL_DEPTH_TEST);
@@ -109,8 +109,9 @@ int main(int argc, char** argv) {
 }
 
 void draw() {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  // clear color and depth buffers
 
+	// choose the domain and resolution of the function
 	float x_min = 0, x_max = 0, y_min = 0, y_max = 0, x_res = 0, y_res = 0, z_grid = 0;
 	if (function == "Sin") {
 		x_min = -1.0f; x_max = 1.0f; y_min = -1.0f; y_max = 1.0f; x_res = 100; y_res = 100; z_grid = -1.0f;
@@ -125,16 +126,17 @@ void draw() {
 	} else { // Gaussian
 		x_min = -1.0f; x_max = 1.0f; y_min = -1.0f; y_max = 1.0f; x_res = 30; y_res = 30; z_grid = -0.1f;
 	}
-	draw_quad(x_min, x_max, y_min, y_max, x_res, y_res);
-	draw_grid(x_min, x_max, y_min, y_max, x_res, y_res, z_grid);
+	draw_quad(x_min, x_max, y_min, y_max, x_res, y_res);             // generate the 3D surface
+	draw_grid(x_min, x_max, y_min, y_max, x_res, y_res, z_grid);     // generate the 2D wireframe base
 	glutSwapBuffers();
 	glutPostRedisplay();
 }
 
 void draw_quad(float x_min, float x_max, float y_min, float y_max, int n_x, int n_y) {
-	float dx = (x_max - x_min) / (n_x - 1);
-	float dy = (y_max - y_min) / (n_y - 1);
+	float dx = (x_max - x_min) / (n_x - 1);    // calculate step size along the x axis
+	float dy = (y_max - y_min) / (n_y - 1);    // calculate step size along the y axis
 
+	// calculate the z range for coloring
 	float z, z_min, z_max;
 	if (function == "Sin") {
 		z_min = -1.5f; z_max = 1.5f;
@@ -150,14 +152,15 @@ void draw_quad(float x_min, float x_max, float y_min, float y_max, int n_x, int 
 		z_min = 0.0f; z_max = 1.3f;
 	}
 
+	// iterate over the xy plane grid
 	for (float x = x_min; x <= x_max - dx; x += dx) {
 		for (float y = y_min; y <= y_max - dy; y += dy) {
-			Quad q;
+			Quad q;                                  // create a new quad object
 
-			z = f(x, y);
-			set_color_by_height(z, z_min, z_max);
-			q.addNormal(n(x, y));
-			q.addPoint(x, y, z);
+			z = f(x, y);                             // calculate height
+			set_color_by_height(z, z_min, z_max);    // set color by height
+			q.addNormal(n(x, y));                    // set normal
+			q.addPoint(x, y, z);                     // define a point
 
 			z = f(x + dx, y);
 			set_color_by_height(z, z_min, z_max);
@@ -174,7 +177,7 @@ void draw_quad(float x_min, float x_max, float y_min, float y_max, int n_x, int 
 			q.addNormal(n(x, y + dy));
 			q.addPoint(x, y + dy, z);
 
-			q.draw();
+			q.draw();                              // render the quadrilateral
 		}
 	}
 }
@@ -189,7 +192,7 @@ float f(float x, float y) {
 	} else if (function == "Ripple") {
 		return std::sin(10.0f * (x * x + y * y)) / 10.0f;
 	} else if (function == "Fenc") {
-		return 0.75f / std::exp(std::pow(x * 5, 2) * std::pow(y * 5, 2));
+		return 0.75f / std::exp(5 * std::pow(x, 2) * 5 * std::pow(y, 2));
 	} else {
 		return std::exp(-(x * x + y * y));
 	}
@@ -212,11 +215,11 @@ float* n(float x, float y) {
 		nx = -2.0f * x * std::cos(10.0f * (x * x + y * y));
 		ny = -2.0f * y * std::cos(10.0f * (x * x + y * y));
 	} else if (function == "Fenc") {
-		nx = 937.5f * x * y * y * std::exp(-625.0f * x * x * y * y);
-		ny = 937.5f * x * x * y * std::exp(-625.0f * x * x * y * y);
+		nx = 37.5f * x * y * y * std::exp(-25.0f * x * x * y * y);
+		ny = 37.5f * x * x * y * std::exp(-25.0f * x * x * y * y);
 	} else {
-		nx = 2.0f * x * f(x, y);;
-		ny = 2.0f * y * f(x, y);;
+		nx = 2.0f * x * f(x, y);
+		ny = 2.0f * y * f(x, y);
 	}
 
 	float length = std::sqrt(nx * nx + ny * ny + nz * nz);
@@ -246,9 +249,11 @@ void set_color_by_height(float z, float z_min, float z_max) {
 }
 
 void viewing(int W, int H) {
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);  // controls the position of objects and camera
+	glLoadIdentity();            // reset current matrix
 
+	// based on the function, choose the eye (camera) position,
+	// center of interest, and the up direction.
 	if (function == "Sin") {
 		gluLookAt(0.0f, 4.0f, 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 	} else if (function == "Wave") {
@@ -264,9 +269,13 @@ void viewing(int W, int H) {
 	}
 
 	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
+	glLoadIdentity();            // reset current matrix
+
+	// set field of view, aspect ratio, near clipping plane,
+	// and the far clipping plane.
 	float aspect = float(W) / H;
 	gluPerspective(40.0f, aspect, 0.1f, 100.0f);
+	// define the screen area
 	glViewport(0, 0, W, H);
 }
 
@@ -275,11 +284,9 @@ void keyboard(unsigned char key, int x, int y) {
 	case 's': // Toggle Shading Mode
 		shading_mode = 1 - shading_mode; // Toggles between 0 and 1
 		if (shading_mode == 1) {
-			// Smooth Shading: Interpolates color/normal across the polygon.
 			glShadeModel(GL_SMOOTH);
 		}
 		else {
-			// Flat Shading: Uses the color/normal of the last vertex for the entire polygon.
 			glShadeModel(GL_FLAT);
 		}
 		glutPostRedisplay(); // Request redraw to apply change
@@ -297,24 +304,22 @@ void keyboard(unsigned char key, int x, int y) {
 }
 
 void draw_grid(float x_min, float x_max, float y_min, float y_max, int n_x, int n_y, float _z) {
-	float dx = (x_max - x_min) / (n_x - 1);
-	float dy = (y_max - y_min) / (n_y - 1);
-	const float grid_z = _z; // Z-coordinate for the grid plane
+	float dx = (x_max - x_min) / (n_x - 1);      // calculate step size along the x axis
+	float dy = (y_max - y_min) / (n_y - 1);      // calculate step size along the y axis
+	const float grid_z = _z;                     // set constant height for all points
 
 	// Disable lighting and depth masking so the grid is drawn clearly
 	glDisable(GL_LIGHTING);
 	glDepthMask(GL_FALSE); // Prevents the grid from writing to the depth buffer
 
-	// Set grid color (e.g., black or red border/black interior as shown in the image)
+	// Set grid color
 	glColor3f(0.0f, 0.0f, 0.0f); // Black lines for the interior grid
 
 	// Draw all vertical lines
 	glBegin(GL_LINES);
 	for (int i = 0; i < n_x; ++i) {
 		float x = x_min + i * dx;
-		// Line starts at (x, y_min, z)
 		glVertex3f(x, y_min, grid_z);
-		// Line ends at (x, y_max, z)
 		glVertex3f(x, y_max, grid_z);
 	}
 	glEnd();
@@ -323,14 +328,12 @@ void draw_grid(float x_min, float x_max, float y_min, float y_max, int n_x, int 
 	glBegin(GL_LINES);
 	for (int j = 0; j < n_y; ++j) {
 		float y = y_min + j * dy;
-		// Line starts at (x_min, y, z)
 		glVertex3f(x_min, y, grid_z);
-		// Line ends at (x_max, y, z)
 		glVertex3f(x_max, y, grid_z);
 	}
 	glEnd();
 
-	// Draw the red border using thicker lines (optional, but looks better)
+	// Draw the red border using thicker lines
 	glColor3f(1.0f, 0.0f, 0.0f); // Red border
 	glLineWidth(2.0f);
 	glBegin(GL_LINE_LOOP); // Draws a closed loop for the border
